@@ -1,44 +1,14 @@
-# ♟️ Chess Database SQL Pipeline Challenge
+# Chess Database Project
 
-## Project Overview
-This project is a complete SQL-based data engineering pipeline built on a chess games dataset.  
-The goal is to load raw CSV data into a SQLite database and perform structured analysis using SQL only (no Pandas for analysis).
-
-The project is divided into 4 stages:
-- Stage 0: Database setup
-- Stage 1–2: SELECT & GROUP BY analysis
-- Stage 3: JOINs & CTEs
-- Stage 4: Window Functions
-
----
-
-## Project Structure
-chess_db/
-│
-├── data/
-│ ├── raw/
-│ │ ├── chess_games.csv
-│ │ ├── player_registry.csv
-│ │
-│ ├── processed/
-│
-├── src/
-│ ├── db.py
-│ ├── queries.py
-│ ├── joins_cte.py
-│ ├── windows.py
-│
-├── chess.db
-├── requirements.txt
-├── README.md
-
+## Overview
+This project builds a relational SQLite database from chess game data and performs SQL analysis using SELECT, GROUP BY, JOINs, CTEs, Window Functions, and Index Optimization. It also includes feature engineering for further analysis or machine learning use.
 
 ---
 
 ## Database Schema
 
-### Games Table
-- game_id (TEXT, Primary Key)
+### games table
+- game_id (TEXT, PRIMARY KEY)
 - white_id (TEXT)
 - black_id (TEXT)
 - winner (TEXT: White / Black / Draw)
@@ -48,51 +18,95 @@ chess_db/
 - victory_status (TEXT)
 - opening_code (TEXT)
 
-### Players Table
-- username (TEXT, Primary Key)
-- country (TEXT)
+Purpose: Stores all chess game records.
 
 ---
 
-### Key Results
-Q1 — Total Games
-20,058 games
-Q2 — Victory Status Distribution
-Resign: 11,147
-Mate: 6,325
-Out of Time: 1,680
-Draw: 906
-Q3 — Longest Games
-Max turns: 349
-Q4 — Win Rates
-White: ~49.86%
-Black: ~45.40%
-Draw: ~4.74%
-Q5 — Average Turns
-Draw games are the longest (~83.8 turns)
-Q6 — Most common openings
-A00, C00, D00, B01, C41
+### players table
+- username (TEXT, PRIMARY KEY)
+- country (TEXT)
 
-### Advanced SQL Insights
-JOIN Analysis
-Top openings: A00, C00, D00
-Player Analysis
-~15 players never played as White
-Win Leaders
-Top players include: taranga, ssf7, hassan1365416
+Purpose: Stores player information.
 
-### Window Functions Insights
-RANK() used to rank games per player by rating
-LAG() used to compare consecutive games per player
-Shows rating progression patterns per player
+---
 
-### Key Learnings
-SQL aggregation techniques (GROUP BY, HAVING)
-Data relationships using JOIN
-Advanced SQL logic using CTEs
-Time-series style analysis using Window Functions
-Building full database pipeline from raw CSV
+## Relationships
+- games.white_id → players.username  
+- games.black_id → players.username  
 
-### Final Notes
-This project demonstrates a full end-to-end SQL workflow:
-Raw Data → Database → Analysis → Insights
+Foreign keys ensure data consistency between games and players.
+
+---
+
+## Indexing
+Indexes were created on:
+- games.white_id
+- games.black_id
+- games.opening_code
+
+These indexes improve query performance for joins and filtering. EXPLAIN QUERY PLAN confirms index usage instead of full table scans.
+
+---
+
+## SQL Analysis
+The project answers the following questions:
+- Highest draw rate opening
+- Players who perform better as Black than White
+- Most common openings per victory status
+- Game statistics using aggregation
+- Player ranking using window functions
+
+---
+
+## Feature Engineering
+A feature table was created containing:
+- game_id
+- rating_diff
+- turns
+- winner
+- opening_shortname
+- white_experience
+- rated
+
+Saved at:
+data/processed/features.csv
+
+---
+
+## Window Functions
+Used RANK and LAG functions to analyze:
+- Player performance over time
+- Game duration ranking per player
+- Rating progression between games
+
+---
+
+## Data Cleaning
+- Removed duplicates
+- Standardized categorical values
+- Ensured consistent schema before loading into database
+
+---
+
+## How to Run
+python src/db.py
+python src/assignment6.py
+python src/joins_cte.py
+python src/windows.py
+python src/features.py
+
+---
+
+## Project Structure
+chess_db/
+├── src/
+├── data/
+│   ├── raw/
+│   ├── processed/
+├── chess.db
+├── README.md
+
+---
+
+## Conclusion
+This project demonstrates SQL database design, analytical querying, performance optimization using indexes, and feature engineering in a structured data pipeline.
