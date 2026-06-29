@@ -84,7 +84,7 @@ This project demonstrates:
 - Building a simple but complete data pipeline
 
 ## Technologies Used
-Python
-Pandas
-JSON handling
+Python,
+Pandas,
+JSON handling,
 File system management (os)
