@@ -2,14 +2,12 @@ import pandas as pd
 import os
 import json
 
-# =========================
 # BASE PATH
-# =========================
 BASE = os.path.dirname(os.path.dirname(__file__))
 
-# =========================
+# =============
 # 1. LOAD DATA
-# =========================
+# =============
 
 # Researchers (CSV)
 researchers_path = os.path.join(BASE, "raw_data", "researchers.csv")
@@ -29,6 +27,18 @@ funding = pd.read_excel(funding_path)
 
 print("Data Loaded Successfully")
 
+# Inner join
+inner_df = researchers.merge(pub_df, on="researcher_id", how="inner").merge(funding, on="researcher_id", how="inner")
+print("Inner shape:", inner_df.shape) # Inner shape: (49, 23) | 49 rows
+
+# Left join
+left_df = researchers.merge(pub_df, on="researcher_id", how="left").merge(funding, on="researcher_id", how="left")
+print("Left shape:", left_df.shape) # Left shape: (86, 23) | 86 rows
+
+# Missed rows in inner join
+print("Rows lost:", len(left_df) - len(inner_df)) # 37
+
+
 # =========================
 # 2. CLEAN FUNDING FUNCTION
 # =========================
@@ -45,7 +55,7 @@ def clean_funding(df):
 funding_clean = clean_funding(funding)
 
 # =========================
-# 3. MERGE DATASETS
+# 3. MERGE Cleaned DATASETS
 # =========================
 
 merged = pd.merge(
