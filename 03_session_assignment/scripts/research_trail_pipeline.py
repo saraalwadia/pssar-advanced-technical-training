@@ -55,7 +55,7 @@ def clean_funding(df):
 funding_clean = clean_funding(funding)
 
 # =========================
-# 3. MERGE Cleaned DATASETS
+# MERGE CLEANED DATASETS
 # =========================
 
 merged = pd.merge(
@@ -75,7 +75,7 @@ final_df = pd.merge(
 print("\nFinal Shape:", final_df.shape)
 
 # =========================
-# 4. ANALYSIS
+# 3. ANALYSIS
 # =========================
 
 # 1. Highest citations
@@ -84,13 +84,18 @@ top_researcher = citations.sort_values(ascending=False).head(1)
 
 print("\nTop Researcher by Citations:")
 print(top_researcher)
+# researcher_id
+# R001    20660.0
+# Name: citations, dtype: float64
 
 # 2. Field with most funding
 field_funding = final_df.groupby("field")["amount_cad"].sum()
 top_field = field_funding.sort_values(ascending=False).head(1)
-
 print("\nTop Funded Field:")
 print(top_field)
+# field
+# Data Engineering    960000.0
+# Name: amount_cad, dtype: float64
 
 # 3. Earliest active researcher
 earliest = final_df[final_df["is_active"] == True]
@@ -98,9 +103,13 @@ earliest = earliest.sort_values("joined_year")
 
 print("\nEarliest Active Researcher:")
 print(earliest[["researcher_id", "joined_year"]].head(1))
+# Earliest Active Researcher:
+#    researcher_id  joined_year
+# 53          R026         2006
+
 
 # =========================
-# 5. SAVE OUTPUT
+# 4. SAVE OUTPUT
 # =========================
 
 output_dir = os.path.join(BASE, "output")
