@@ -1,0 +1,13 @@
+2026-06-30 15:11:07,027 - INFO - Pipeline started
+2026-06-30 15:11:07,369 - INFO - Loaded data: (20058, 17)
+2026-06-30 15:11:07,458 - INFO - After cleaning: (20058, 20)
+2026-06-30 15:11:07,899 - INFO - Starting validation process...
+2026-06-30 15:11:07,914 - INFO - Required columns check passed
+2026-06-30 15:11:07,930 - INFO - Null values check passed
+2026-06-30 15:11:07,956 - INFO - Winner values check passed
+2026-06-30 15:11:07,957 - INFO - Turns validation passed
+2026-06-30 15:11:08,031 - INFO - Duplicates check passed
+2026-06-30 15:11:08,037 - INFO - Validation successful: 20058 rows, 20 columns
+2026-06-30 15:11:08,045 - INFO - Validation passed
+2026-06-30 15:11:08,840 - INFO - Saved cleaned data to: output\clean_chess.csv
+2026-06-30 15:11:08,841 - INFO - Pipeline finished successfully

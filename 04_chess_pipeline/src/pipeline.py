@@ -6,35 +6,50 @@ from src.clean_chess import clean_chess
 from src.validate import validate_chess
 
 # -----------------------------
-# Logging setup
+# Create required folders
 # -----------------------------
-logging.basicConfig(level=logging.INFO)
+os.makedirs("logs", exist_ok=True)
+os.makedirs("output", exist_ok=True)
+
+# -----------------------------
+# Logging setup (only once)
+# -----------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("logs/pipeline.log"),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 # -----------------------------
 # Pipeline function
 # -----------------------------
 def run_pipeline():
-    logging.info("Pipeline started")
+    logger.info("Pipeline started")
 
     # 1. Load
     df = load_chess_data()
-    logging.info(f"Loaded data: {df.shape}")
+    logger.info(f"Loaded data: {df.shape}")
 
     # 2. Clean
     df = clean_chess(df)
-    logging.info(f"After cleaning: {df.shape}")
+    logger.info(f"After cleaning: {df.shape}")
 
     # 3. Validate
     validate_chess(df)
-    logging.info("Validation passed")
+    logger.info("Validation passed")
 
     # 4. Save
     output_path = os.path.join("output", "clean_chess.csv")
     df.to_csv(output_path, index=False)
 
-    logging.info(f"Saved cleaned data to: {output_path}")
+    logger.info(f"Saved cleaned data to: {output_path}")
 
-    logging.info("Pipeline finished successfully")
+    logger.info("Pipeline finished successfully")
 
     return df
 

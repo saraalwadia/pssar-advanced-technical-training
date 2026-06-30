@@ -1,31 +1,25 @@
 import pandas as pd
 import logging
 
-
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def validate_chess(df: pd.DataFrame) -> None:
     """
     Validate cleaned chess dataset.
 
-    This function checks:
+    Checks:
     - Required columns exist
-    - No invalid values
+    - No null values in critical columns
+    - Valid categorical values
+    - Logical constraints
     - No duplicates
-    - Logical constraints are satisfied
-
-    Args:
-        df (pd.DataFrame): Cleaned chess dataset
-
-    Returns:
-        None (raises error if validation fails)
     """
 
-    logging.info("Starting validation...")
+    logger.info("Starting validation process...")
 
     # -----------------------------
-    # 1. Check required columns
+    # 1. Required columns check
     # -----------------------------
     required_cols = [
         'rating_diff',
@@ -35,54 +29,55 @@ def validate_chess(df: pd.DataFrame) -> None:
         'winner'
     ]
 
-    for col in required_cols:
-        if col not in df.columns:
-            raise ValueError(f"Missing required column: {col}")
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
 
-    logging.info("Required columns exist")
+    logger.info("Required columns check passed")
 
     # -----------------------------
-    # 2. Validate winner values
+    # 2. Null check (important improvement)
+    # -----------------------------
+    null_cols = df[required_cols].isnull().sum()
+    if null_cols.any():
+        raise ValueError(f"Null values found:\n{null_cols}")
+
+    logger.info("Null values check passed")
+
+    # -----------------------------
+    # 3. Winner validation
     # -----------------------------
     valid_winners = ['White', 'Black', 'Draw']
 
-    if not df['winner'].isin(valid_winners).all():
-        invalid_values = df[~df['winner'].isin(valid_winners)]['winner'].unique()
-        raise ValueError(f"Invalid winner values found: {invalid_values}")
+    invalid_mask = ~df['winner'].isin(valid_winners)
+    if invalid_mask.any():
+        invalid_values = df.loc[invalid_mask, 'winner'].unique()
+        raise ValueError(f"Invalid winner values: {invalid_values}")
 
-    logging.info("Winner values are valid")
+    logger.info("Winner values check passed")
 
     # -----------------------------
-    # 3. Validate turns
+    # 4. Turns validation
     # -----------------------------
+    if not pd.api.types.is_numeric_dtype(df['turns']):
+        raise ValueError("Turns column must be numeric")
+
     if (df['turns'] < 1).any():
-        raise ValueError("Invalid turns detected (must be >= 1)")
+        raise ValueError("Turns must be >= 1")
 
-    logging.info("Turns are valid")
-
-    # -----------------------------
-    # 4. Check duplicates
-    # -----------------------------
-    duplicates = df.duplicated().sum()
-
-    if duplicates > 0:
-        raise ValueError(f"Found {duplicates} duplicate rows")
-
-    logging.info("No duplicates found")
+    logger.info("Turns validation passed")
 
     # -----------------------------
-    # 5. Check nulls in critical columns
+    # 5. Duplicates check
     # -----------------------------
-    critical_cols = ['white_rating', 'black_rating', 'turns', 'winner']
+    dup_count = df.duplicated().sum()
 
-    null_counts = df[critical_cols].isnull().sum()
+    if dup_count > 0:
+        raise ValueError(f"Found {dup_count} duplicate rows")
 
-    if null_counts.any():
-        raise ValueError(f"Null values found in critical columns:\n{null_counts}")
-
-    logging.info("No nulls in critical columns")
+    logger.info("Duplicates check passed")
 
     # -----------------------------
-    # 6. Final success message
+    # Final success message
     # -----------------------------
-    logging.info(f"Validation passed: {df.shape[0]} rows, {df.shape[1]} columns")
+    logger.info(f"Validation successful: {df.shape[0]} rows, {df.shape[1]} columns")
