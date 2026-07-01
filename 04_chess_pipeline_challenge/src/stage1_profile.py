@@ -29,9 +29,3 @@ print("Q5 - Missing % opening_variation:", q5)
 # Q6: What is the minimum number of turns in any game?
 q6 = df["turns"].min() # 1
 print("Q6 - Min turns:", q6)
-
-# Print results
-
-
-
-
