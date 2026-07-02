@@ -12,25 +12,27 @@ conn = sqlite3.connect("chess.db")
 query = """
 SELECT
     game_id,
+
     (white_rating - black_rating) AS rating_diff,
     turns,
-    CASE WHEN winner IS NULL THEN 'Unknown' ELSE winner END AS winner,
 
-    CASE
+    CASE 
+        WHEN winner IS NULL THEN 'Unknown'
+        ELSE winner
+    END AS winner,
+
+    CASE 
         WHEN opening_code IS NULL THEN 'Unknown'
         ELSE opening_code
     END AS opening_shortname,
 
-    CASE
-        WHEN white_rating > 2000 THEN 1
-        ELSE 0
-    END AS white_experience,
+    (white_rating > black_rating) AS white_won,
 
     CASE
         WHEN winner = 'White' THEN 1
         WHEN winner = 'Black' THEN 0
         ELSE 0.5
-    END AS rated
+    END AS label
 
 FROM games;
 """

@@ -8,15 +8,13 @@ cur = conn.cursor()
 # ─────────────────────────────
 q7 = """
 SELECT
-    g.opening_code,
-    o.opening_fullname,
+    opening_code,
+    opening_fullname,
     COUNT(*) AS total_games
-FROM games AS g
-JOIN openings AS o
-    ON g.opening_code = o.opening_code
+FROM games
 GROUP BY
-    g.opening_code,
-    o.opening_fullname
+    opening_code,
+    opening_fullname
 ORDER BY total_games DESC
 LIMIT 5;
 """
