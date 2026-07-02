@@ -1,112 +1,143 @@
-# Chess Database Project
+Chess Database Project — SQL Pipeline
 
-## Overview
-This project builds a relational SQLite database from chess game data and performs SQL analysis using SELECT, GROUP BY, JOINs, CTEs, Window Functions, and Index Optimization. It also includes feature engineering for further analysis or machine learning use.
+Overview
 
----
+This project builds a full SQL-based data pipeline using a chess games dataset (chess_games.csv) and a player registry (player_registry.csv).
+The goal is to transform raw data into a structured relational database, perform SQL analysis, and generate ML-ready features.
 
-## Database Schema
+The entire workflow is implemented using SQLite with Python.
 
-### games table
-- game_id (TEXT, PRIMARY KEY)
-- white_id (TEXT)
-- black_id (TEXT)
-- winner (TEXT: White / Black / Draw)
-- turns (INTEGER)
-- white_rating (INTEGER)
-- black_rating (INTEGER)
-- victory_status (TEXT)
-- opening_code (TEXT)
+Data Sources
 
-Purpose: Stores all chess game records.
+The project uses two datasets:
 
----
+chess_games.csv
+Contains chess game information including:
+game_id, white_id, black_id, winner, turns, white_rating, black_rating, victory_status, opening_code, moves
 
-### players table
-- username (TEXT, PRIMARY KEY)
-- country (TEXT)
+player_registry.csv
+Contains player metadata:
+username, country
 
-Purpose: Stores player information.
+Database Design
 
----
+The SQLite database contains the following tables:
 
-## Relationships
-- games.white_id → players.username  
-- games.black_id → players.username  
+games
+Stores chess game records:
+game_id (Primary Key)
+white_id
+black_id
+winner
+turns
+white_rating
+black_rating
+victory_status
+opening_code
 
-Foreign keys ensure data consistency between games and players.
+players
+Stores player information:
+username (Primary Key)
+country
 
----
+Foreign Key Logic (conceptual):
+games.white_id → players.username
+games.black_id → players.username
 
-## Indexing
-Indexes were created on:
+Data Quality Issues
+
+Several issues were identified during exploration:
+
+- No exact duplicate rows found
+- 1,138 duplicate move sequences
+- opening_response column is ~93.98% missing
+- opening_variation column is ~28.22% missing
+- 18 games have only 1 turn (suspicious / invalid games)
+
+Data Cleaning Decisions
+
+The following cleaning steps were applied:
+
+- Dropped or ignored highly missing columns (opening_response)
+- Extracted new features such as rating_diff = white_rating - black_rating
+- Flagged suspicious games where turns < 5
+- Ensured dataset integrity before analysis
+- Confirmed no duplicate rows exist in final dataset
+
+Indexing Strategy
+
+Indexes were created to improve query performance:
+
 - games.white_id
 - games.black_id
 - games.opening_code
 
-These indexes improve query performance for joins and filtering. EXPLAIN QUERY PLAN confirms index usage instead of full table scans.
+Performance was verified using EXPLAIN QUERY PLAN.
 
----
+Before indexing:
+- Full table scan is used
 
-## SQL Analysis
-The project answers the following questions:
-- Highest draw rate opening
-- Players who perform better as Black than White
-- Most common openings per victory status
-- Game statistics using aggregation
-- Player ranking using window functions
+After indexing:
+- SQLite uses index lookup, improving query performance
 
----
+Analytical SQL Results
 
-## Feature Engineering
-A feature table was created containing:
-- game_id
-- rating_diff
-- turns
-- winner
-- opening_shortname
-- white_experience
-- rated
+Key findings from SQL analysis:
 
-Saved at:
-data/processed/features.csv
+- Total games: 20,058
+- Rated games: 16,155
+- Victory status distribution:
+  - Resign: most common
+  - Mate
+  - Out of Time
+  - Draw
 
----
+Win rates:
+- White: 49.86%
+- Black: 45.40%
+- Draw: 4.74%
 
-## Window Functions
-Used RANK and LAG functions to analyze:
-- Player performance over time
-- Game duration ranking per player
-- Rating progression between games
+Most common openings:
+- Sicilian Defense variations
+- French Defense
+- Queen’s Pawn Game
 
----
+Feature Engineering
 
-## Data Cleaning
-- Removed duplicates
-- Standardized categorical values
-- Ensured consistent schema before loading into database
+A machine learning feature table was created with one row per game.
 
----
+Features include:
 
-## How to Run
-python src/db.py
-python src/assignment6.py
-python src/joins_cte.py
-python src/windows.py
-python src/features.py
+- rating_diff (white_rating - black_rating)
+- turns (game length)
+- opening_shortname (opening_code)
+- white_experience (derived from rating threshold)
+- winner encoded as label
 
----
+This dataset is ready for classification models.
 
-## Project Structure
-chess_db/
-├── src/
-├── data/
-│   ├── raw/
-│   ├── processed/
-├── chess.db
-├── README.md
+Window Functions
 
----
+Advanced SQL window functions were used:
 
-## Conclusion
-This project demonstrates SQL database design, analytical querying, performance optimization using indexes, and feature engineering in a structured data pipeline.
+- RANK()
+  Used to rank games per player based on rating
+
+- LAG()
+  Used to compare each game with the previous game for the same player
+
+These allow sequential and player-level analysis without aggregating rows.
+
+Conclusion
+
+This project demonstrates a full data pipeline:
+
+raw data → relational schema → SQL analysis → feature engineering → optimized queries
+
+It focuses on:
+
+- relational database design
+- SQL analytical queries
+- data cleaning and quality control
+- ML-ready feature preparation
+- performance optimization using indexes
