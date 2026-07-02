@@ -7,13 +7,23 @@ cur = conn.cursor()
 # Q7: JOIN games + openings (top 5 openings)
 # ─────────────────────────────
 q7 = """
-SELECT opening_code, COUNT(*) AS cnt
-FROM games
-GROUP BY opening_code
-ORDER BY cnt DESC
+SELECT
+    g.opening_code,
+    o.opening_fullname,
+    COUNT(*) AS total_games
+FROM games AS g
+JOIN openings AS o
+    ON g.opening_code = o.opening_code
+GROUP BY
+    g.opening_code,
+    o.opening_fullname
+ORDER BY total_games DESC
 LIMIT 5;
 """
-print("Q7:", cur.execute(q7).fetchall())
+
+print("Q7:")
+for row in cur.execute(q7):
+    print(row)
 
 # ─────────────────────────────
 # Q8: players who never played as white
