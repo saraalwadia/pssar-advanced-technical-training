@@ -9,7 +9,7 @@ cur = conn.cursor()
 q1 = """
 SELECT 
     COUNT(*) AS total_games,
-    SUM(CASE WHEN white_rating IS NOT NULL THEN 1 ELSE 0 END) AS rated_games
+    SUM(CASE WHEN rated = 1 THEN 1 ELSE 0 END) AS rated_games
 FROM games;
 """
 print("Q1:", cur.execute(q1).fetchall())
@@ -43,6 +43,7 @@ SELECT
     winner,
     COUNT(*) * 100.0 / (SELECT COUNT(*) FROM games) AS win_rate
 FROM games
+WHERE winner IS NOT NULL
 GROUP BY winner;
 """
 print("Q4:", cur.execute(q4).fetchall())
