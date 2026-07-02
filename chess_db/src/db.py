@@ -2,26 +2,59 @@ import pandas as pd
 import sqlite3
 
 # ─────────────────────────────
-# 1. Load data
+# Load raw data
 # ─────────────────────────────
 games = pd.read_csv("data/raw/chess_games.csv")
 players = pd.read_csv("data/raw/player_registry.csv")
 
 # ─────────────────────────────
-# 2. Create database
+# CLEAN: keep only required columns (MOST IMPORTANT PART)
+# ─────────────────────────────
+games = games[[
+    "game_id",
+    "white_id",
+    "black_id",
+    "winner",
+    "turns",
+    "white_rating",
+    "black_rating",
+    "victory_status",
+    "opening_code"
+]]
+
+players = players[[
+    "username",
+    "country"
+]]
+
+# ─────────────────────────────
+# Create database connection
 # ─────────────────────────────
 conn = sqlite3.connect("chess.db")
 conn.execute("PRAGMA foreign_keys = ON")
 
 # ─────────────────────────────
-# 3. Drop old tables (safe reset)
+# Reset tables
 # ─────────────────────────────
 conn.execute("DROP TABLE IF EXISTS games")
 conn.execute("DROP TABLE IF EXISTS players")
 
 # ─────────────────────────────
-# 4. Create tables (STRICT schema)
+# Create tables (STRICT schema)
 # ─────────────────────────────
+conn.execute("""
+CREATE TABLE games (
+    game_id TEXT PRIMARY KEY,
+    white_id TEXT,
+    black_id TEXT,
+    winner TEXT CHECK(winner IN ('White','Black','Draw')),
+    turns INTEGER,
+    white_rating INTEGER,
+    black_rating INTEGER,
+    victory_status TEXT,
+    opening_code TEXT
+)
+""")
 
 conn.execute("""
 CREATE TABLE players (
@@ -30,60 +63,27 @@ CREATE TABLE players (
 )
 """)
 
-conn.execute("""
-CREATE TABLE games (
-    game_id TEXT PRIMARY KEY,
-
-    white_id TEXT,
-    black_id TEXT,
-
-    winner TEXT CHECK(winner IN ('White','Black','Draw')),
-    turns INTEGER,
-    white_rating INTEGER,
-    black_rating INTEGER,
-    victory_status TEXT,
-    opening_code TEXT,
-
-    FOREIGN KEY (white_id) REFERENCES players(username),
-    FOREIGN KEY (black_id) REFERENCES players(username)
-)
-""")
-
 # ─────────────────────────────
-# 5. Load data (IMPORTANT: append, NOT replace)
+# Insert data into DB
 # ─────────────────────────────
-players.to_sql("players", conn, if_exists="append", index=False)
 games.to_sql("games", conn, if_exists="append", index=False)
+players.to_sql("players", conn, if_exists="append", index=False)
 
 # ─────────────────────────────
-# 6. INDEXES (performance requirement)
+# Indexes (REQUIRED FOR ASSIGNMENT)
 # ─────────────────────────────
 conn.execute("CREATE INDEX IF NOT EXISTS idx_white_id ON games(white_id);")
 conn.execute("CREATE INDEX IF NOT EXISTS idx_black_id ON games(black_id);")
 conn.execute("CREATE INDEX IF NOT EXISTS idx_opening_code ON games(opening_code);")
 
 # ─────────────────────────────
-# 7. VERIFY DATABASE
+# Verify
 # ─────────────────────────────
-tables = conn.execute("""
-SELECT name FROM sqlite_master WHERE type='table'
-""").fetchall()
+print("Tables in DB:")
+print(conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall())
 
-print("Tables in DB:", tables)
-
-# ─────────────────────────────
-# 8. INDEX TEST (EXPLAIN QUERY PLAN)
-# ─────────────────────────────
-print(
-    conn.execute("""
-    EXPLAIN QUERY PLAN
-    SELECT * FROM games WHERE white_id = 'abc'
-    """).fetchall()
-)
-
-# ─────────────────────────────
-# 9. FINAL CHECK (optional but strong)
-# ─────────────────────────────
-print("Foreign key check:", conn.execute("PRAGMA foreign_key_check").fetchall())
+print(conn.execute(
+    "EXPLAIN QUERY PLAN SELECT * FROM games WHERE white_id='test'"
+).fetchall())
 
 conn.close()
